@@ -13,6 +13,8 @@ alias fff="fzf --bind 'enter:execute(nvim.appimage {})'"
 
 alias cdava='cd '$HOME'/work/avadev'
 alias che='chezmoi'
+alias tmuxo='tmux -f ~/.config/tmux/tmux.conf.outer'
+alias tmuxi='tmux -f ~/.config/tmux/tmux.conf.inner'
 
 ### lazygit
 alias llg='lazygit'                                                              
