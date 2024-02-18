@@ -77,6 +77,7 @@ wk.register({
      e = {"<cmd>:e $MYVIMRC<cr>","edit init.vim"},
      s = {"<cmd>:source $MYVIMRC<cr>","source init.vim"},
      o = { "<cmd>Telescope colorscheme<cr>", "colorcheme /telescope" },
+     n = {"<cmd>:Telescope file_browser path=~/.config/nvim/notes<cr>","notes of ava"},
   },
   g = {
     name = "Git",
