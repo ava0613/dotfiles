@@ -4,6 +4,17 @@ These are my notes
 #vi
 
 ##vimdiff 
+:vert diffsplit <filename>
+:diffsplit <filename>
+]c, [c               - next/prev diff
+diffget, diffput     - 
+Ctrl + w Ctrl + w    # switch between diff windows
+
+##macros
+qa - start registering macro named a
+q - end resitering macro
+@a - replay macro
+@@ - replay last macro
 
 #########################################################################
 #chezmoi 
