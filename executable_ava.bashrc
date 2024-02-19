@@ -15,6 +15,7 @@ alias cdava='cd '$HOME'/work/avadev'
 alias che='chezmoi'
 alias tmuxo='tmux -f ~/.config/tmux/tmux.conf.outer'
 alias tmuxi='tmux -f ~/.config/tmux/tmux.conf.inner'
+alias tmux18='tmux -f ~/.config/tmux/tmux18.conf.inner'
 
 ### lazygit
 alias llg='lazygit'                                                              
