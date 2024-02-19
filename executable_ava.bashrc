@@ -20,11 +20,11 @@ alias tmux18='tmux -f ~/.config/tmux/tmux18.conf.inner'
 
 fzf_dir() # get the dir of a path selected with fzf, searches only in homedir
 {
-    path=$(find ~/ | fzf | xargs -I {} bash -c 'get_dir "{}"')
+    path=$(find ~/ | fzf)
     if [ -d "$path" ]; then
         printf $path
     else
-        printf $(dirname $par)
+        printf $(dirname $path)
     fi
 }
 alias fcd='cd $(fzf_dir); ls -la'
