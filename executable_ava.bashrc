@@ -31,6 +31,24 @@ alias fcd='cd $(fzf_dir); ls -la'
 alias mcd='mc $(fzf_dir)'
 alias fvi="fzf --bind 'enter:execute(nvim.appimage {})'"
 
+### ripgrep
+alias rg='rg -Sp'
+
+rgg_rg()  # ripgrep simplified globbing without the -g param
+{
+    # $1 comes from alias, $2 $3 come from cmd line
+    if [ -z "$3" ] # $3 is the glob pattern
+    then
+      #glob=""
+      rg "$2" "$1" 
+    else
+      #glob="-g '$2'"
+      rg "$2" "$1" -g "$3"
+    fi
+    #rg $1 ~/work/atom $glob
+}
+alias rgg='rgg_rg .'  # rgg for current dir
+alias rga='rgg_rg ~/work/atom' # rgg for atom dir FIXME from ATOM_ROOT
 
 
 ### lazygit
