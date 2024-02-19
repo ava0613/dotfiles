@@ -9,13 +9,29 @@ ctrl-u:preview-half-page-up,ctrl-d:preview-half-page-down,\
 ctrl-h:preview-top,ctrl-e:preview-bottom,\
 alt-up:half-page-up,alt-up:half-page-down"
 
-alias fff="fzf --bind 'enter:execute(nvim.appimage {})'"
 
+alias cdw='cd ~/work'
 alias cdava='cd '$HOME'/work/avadev'
+
 alias che='chezmoi'
 alias tmuxo='tmux -f ~/.config/tmux/tmux.conf.outer'
 alias tmuxi='tmux -f ~/.config/tmux/tmux.conf.inner'
 alias tmux18='tmux -f ~/.config/tmux/tmux18.conf.inner'
+
+fzf_dir() # get the dir of a path selected with fzf, searches only in homedir
+{
+    path=$(find ~/ | fzf | xargs -I {} bash -c 'get_dir "{}"')
+    if [ -d "$path" ]; then
+        printf $path
+    else
+        printf $(dirname $par)
+    fi
+}
+alias fcd='cd $(fzf_dir); ls -la'
+alias mcd='mc $(fzf_dir)'
+alias fvi="fzf --bind 'enter:execute(nvim.appimage {})'"
+
+
 
 ### lazygit
 alias llg='lazygit'                                                              
@@ -26,7 +42,6 @@ lazygit_filtered()
 }                                                                                
 alias llh='lazygit_filtered'                                 
 
-alias cdw='cd ~/work'
 
 
 #########
