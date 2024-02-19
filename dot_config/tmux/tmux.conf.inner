@@ -60,7 +60,7 @@ set -g status-right "#[fg=green,bg=default,bright] #[default]"
 #set -ag status-right "#[fg=white,bg=default]  %a %d #[default]"
 
 # Display the hostname
-set -ag status-right "#[fg=cyan,bg=default] #H #[default]"
+set -ag status-right "#[fg=cyan,bg=default] #h #[default]"
 
 # Display the time
 #set -ag status-right "#[fg=colour172,bright,bg=default]⌚︎%Y-%m-%d %H:%M %p #[default]"
