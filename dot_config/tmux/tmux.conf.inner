@@ -64,7 +64,7 @@ set -ag status-right "#[fg=cyan,bg=default] #H #[default]"
 
 # Display the time
 #set -ag status-right "#[fg=colour172,bright,bg=default]⌚︎%Y-%m-%d %H:%M %p #[default]"
-set -ag status-right "#[fg=colour172,bright,bg=default] %Y-%m-%d %H:%M %p #[default]"
+set -ag status-right "#[fg=colour172,bright,bg=default] %H:%M/%b%d #[default]"
 
 # Set the inactive window color and style
 set -g window-status-style fg=colour244,bg=default
