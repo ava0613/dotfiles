@@ -1,6 +1,6 @@
 
 run-shell ~/.tmux/plugins/tmux-resurrect/resurrect.tmux
-set -g @resurrect-processes 'ssh'
+#set -g @resurrect-processes 'ssh'
 
 # leader outer tmux
 set-option -g prefix C-a
@@ -65,10 +65,12 @@ set -g status-right "#[fg=green,bg=default,bright] #[default]"
 #set -ag status-right "#[fg=white,bg=default]  %a %d #[default]"
 
 # Display the time
-set -ag status-right "#[fg=colour172,bright,bg=default] ⌚︎%Y-%m-%d %H:%M %p #[default]"
+# set -ag status-right "#[fg=colour172,bright,bg=default] ⌚︎%Y-%m-%d %H:%M %p #[default]"
+set -ag status-right "#[fg=colour172,bright,bg=default] %H:%M/%b%d #[default]"
 
 # Display the hostname
-set -ag status-right "#[fg=cyan,bg=default] ☠ #H #[default]"
+#set -ag status-right "#[fg=cyan,bg=default] ☠ #H #[default]"
+set -ag status-right "#[fg=cyan,bg=default] #H #[default]"
 
 # Set the inactive window color and style
 set -g window-status-style fg=colour244,bg=default
