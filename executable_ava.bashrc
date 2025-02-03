@@ -31,6 +31,23 @@ alias fcd='cd $(fzf_dir); ls -la'
 alias mcd='mc $(fzf_dir)'
 alias fvi="fzf --bind 'enter:execute(nvim.appimage {})'"
 
+# git stuff
+alias deltav='delta --side-by-side'
+alias ggst='git status'
+alias ggsu='git status -uno'
+alias gglog='git log  --graph --oneline --pretty="%aI %C(green)%h %C(yellow)%an %C(red) %s"'
+alias gglp='git log -p'
+alias gglpU='git log -p -U99999'
+
+alias ggh='echo "some git help/reminder - useful git commands
+git diff 0dca0..86ad2f NodataService.py | delta 
+git log -p -5
+git show 0dca0 NodataService.py
+
+"
+alias | grep -e "^alias gg" | grep -v grep'
+
+
 ### ripgrep
 alias rg='rg -Sp'
 
