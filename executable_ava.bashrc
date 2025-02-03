@@ -38,6 +38,7 @@ alias ggsu='git status -uno'
 alias gglog='git log  --graph --oneline --pretty="%aI %C(green)%h %C(yellow)%an %C(red) %s"'
 alias gglp='git log -p'
 alias gglpU='git log -p -U99999'
+alias gglf='git log --name-only'
 
 alias ggh='echo "some git help/reminder - useful git commands
 git diff 0dca0..86ad2f NodataService.py | delta 
