@@ -19,6 +19,21 @@ q - end resitering macro
 #########################################################################
 #chezmoi 
 
+## frequent commands
+- che cd  -- cd to the git repo, there you can use regular git commands
+- che diff   -- shows diff between the git workdir and target
+- che -v apply -- copies the files from source (che git workdir) to the target
+- che edit ~/ava.bashrc -- edits the source state (not the actual ~/ava.bashrc !!)
+- che update -v  -- pulls files from remote and applies them 
+
+## concepts
+~/.local/share/chezmoi    <-- a git repo for chezmoi (workdir, local repo, remote repo) 
+- target - the original ("runtime")  location of a file/dir, e.g: ~/ava.bashrc
+- source - the file/dir corresponding to the target in che workdir, e.g: ~/.local/share/chezmoi/executable_ava.bashrc
+- let chezmoi to manage a file or dir for you
+chezmoi add ~/.bashrc 
+
+
 ## install
 sh -c "$(curl -fsLS get.chezmoi.io)"
 mv bin/chezmoi ../../.local/bin/
