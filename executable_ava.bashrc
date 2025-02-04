@@ -79,8 +79,8 @@ lazygit_filtered()
 alias llh='lazygit_filtered'                                 
 
 ### prompt
-PROMPT_COMMAND='PS1_CMD1=$(git branch --show-current 2>/dev/null)'; 
-PROMPT_COMMAND='PS1_CMD2=$(basename $(git rev-parse --show-toplevel))'; 
+PROMPT_COMMAND1='PS1_CMD1=$(git branch --show-current 2>/dev/null)'; 
+PROMPT_COMMAND2='PS1_CMD2=$(basename $(git rev-parse --show-toplevel))'; 
 PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\] \[\033[01;33m\][${PS1_CMD2}:${PS1_CMD1}]\[\033[00m\]\$ ';
 #PS1='${PS1_CMD1}'
 
