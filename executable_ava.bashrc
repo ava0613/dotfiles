@@ -39,12 +39,27 @@ alias gglog='git log  --graph --oneline --pretty="%aI %C(green)%h %C(yellow)%an 
 alias gglp='git log -p'
 alias gglpU='git log -p -U99999'
 alias gglf='git log --name-only'
+#alias ggck='git checkout'
+git_branch()
+{
+    if [ -n "$1" ]
+    then
+      git checkout $1
+    else
+      git branch -vv
+    fi
+}
+
+alias ggbr='git_branch'
+
 
 alias ggh='echo "some git help/reminder - useful git commands
 git diff 0dca0..86ad2f NodataService.py | delta 
 git log -p -5
-git show 0dca0 NodataService.py
-
+git show 0dca0 NodataService.py > NodataService.py.older
+git stash, or, git stash push -m "message"
+git stash list
+git stash pop
 "
 alias | grep -e "^alias gg" | grep -v grep'
 
@@ -79,9 +94,22 @@ lazygit_filtered()
 alias llh='lazygit_filtered'                                 
 
 ### prompt
-PROMPT_COMMAND='PS1_CMD=$(basename $(git rev-parse --show-toplevel))@$(git branch --show-current 2>/dev/null)'; 
+PROMPT_COMMAND='PS1_CMD=$(basename $(git rev-parse --show-toplevel))@$(git branch --show-current 2>/dev/null)$([[ $(git status --porcelain 2> /dev/null) ]] && echo "*")'; 
 PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\] \[\033[01;33m\][${PS1_CMD}]\[\033[00m\]\$ ';
 #PS1='${PS1_CMD1}'
+function parse_git_dirty {
+  [[ $(git status --porcelain 2> /dev/null) ]] && echo "*"
+}
+function parse_git_branch {
+  #git branch --no-color 2> /dev/null | sed -e '/^[^*]/d' -e "s/* \(.*\)/ (\1$(parse_git_dirty))/"
+  repo=$(basename $(git rev-parse --show-toplevel) 2>/dev/null)
+  branch=$(git branch --show-current 2>/dev/null)
+  #dirty=$(parse_git_dirty)
+  dirty=$([[ $(git status --porcelain 2> /dev/null) ]] && echo "*")
+  echo [$repo@$branch$dirty]
+}
+
+#export PS1="\n\t \[\033[32m\]\w\[\033[33m\]\$(parse_git_branch)\[\033[00m\] $ "
 
 #########
 # MT stuff
