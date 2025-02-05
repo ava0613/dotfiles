@@ -94,7 +94,7 @@ lazygit_filtered()
 alias llh='lazygit_filtered'                                 
 
 ### prompt
-PROMPT_COMMAND='PS1_CMD=$(basename $(git rev-parse --show-toplevel))@$(git branch --show-current 2>/dev/null)$([[ $(git status --porcelain 2> /dev/null) ]] && echo "*")'; 
+PROMPT_COMMAND='PS1_CMD=$(basename $(git rev-parse --show-toplevel 2>/dev/null) 2>/dev/null)@$(git branch --show-current 2>/dev/null)$([[ $(git status --porcelain 2>/dev/null) ]] && echo "*")'; 
 PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\] \[\033[01;33m\][${PS1_CMD}]\[\033[00m\]\$ ';
 #PS1='${PS1_CMD1}'
 function parse_git_dirty {
