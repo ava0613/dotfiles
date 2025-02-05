@@ -14,21 +14,42 @@ alias cdw='cd ~/work'
 alias cdava='cd '$HOME'/work/avadev'
 
 alias che='chezmoi'
+alias cdche='cd ~/.local/share/chezmoi'
 alias tmuxo='tmux -f ~/.config/tmux/tmux.conf.outer'
 alias tmuxi='tmux -f ~/.config/tmux/tmux.conf.inner'
 alias tmux18='tmux -f ~/.config/tmux/tmux18.conf.inner'
 
 fzf_dir() # get the dir of a path selected with fzf, searches only in homedir
 {
-    path=$(find ~/ | fzf)
+    if [ -n "$1" ]
+    then
+      input_path=$1
+    else
+      input_path=~/tmp
+    fi
+    path=$(find $input_path | fzf)
     if [ -d "$path" ]; then
         printf $path
     else
         printf $(dirname $path)
     fi
 }
-alias fcd='cd $(fzf_dir); ls -la'
-alias mcd='mc $(fzf_dir)'
+
+fzf_cd()
+{
+    cd $(fzf_dir $1)
+    ls -la
+}
+alias fcd=fzf_cd
+#alias fcd='cd $(fzf_dir); ls -la'
+#
+fzf_mc()
+{
+   mc $(fzf_dir $1)
+}
+alias mcd=fzf_mc
+#alias mcd='mc $(fzf_dir)'
+
 alias fvi="fzf --bind 'enter:execute(nvim.appimage {})'"
 
 # git stuff
@@ -146,16 +167,33 @@ alias iptrlog6='ssh avasarhely@iptrlog6.net.telekom.intra'
 alias iptrlog8='ssh avasarhely@iptrlog8.net.telekom.intra'
 alias iptrlog10='ssh avasarhely@iptrlog10.net.telekom.intra'
 
-if [ -d $HOME'/work/atom' ]; then # in a dev env
+if [ -d $HOME'/atomdev/atom' ]; then # legacy 2204
+    ATOM_ROOT=$HOME'/atomdev/atom'                                                  
+elif [ -d $HOME'/work/atom' ]; then # in a dev env
     ATOM_ROOT=$HOME'/work/atom'                                                  
 else # default atom machines
     ATOM_ROOT=$HOME'/atom'                                                  
 fi
 
+if [ -d $HOME'/atomdev/atom_runtime' ]; then # legacy 2204
+    ATOM_RUNTIME=$HOME'/atomdev/atom_runtime'                                                  
+elif [ -d $HOME'/work/atom_runtime' ]; then # in a dev env
+    ATOM_RUNTIME=$HOME'/work/atom_runtime'                                                  
+else # default atom machines
+    ATOM_RUNTIME=$HOME'/atom_runtime'                                                  
+fi
+
 alias cda='cd $ATOM_ROOT'                                                        
-alias cdaa='cd $(find $ATOM_ROOT -type d | fzf )'                                
+alias fcda='cd $(find $ATOM_ROOT -type d | fzf ); ls -l'                                
+alias mca='mc $(find $ATOM_ROOT -type d | fzf )'
+
+alias cdar='cd $ATOM_RUNTIME'                                                        
+alias fcdar='cd $(find $ATOM_RUNTIME -type d | fzf ); ls -l'                                
+alias mcar='mc $(find $ATOM_RUNTIME -type d | fzf )'
+
 # find the full path of a file wihin the atom project, regardless of your current path  
-alias aff="find $ATOM_ROOT | fzf "                                                
+alias ffa="find $ATOM_ROOT | fzf "                                                
+alias ffar="find $ATOM_RUNTIME | fzf "                                                
 
 alias agg="find $ATOM_ROOT | fzf --bind 'enter:execute(lazygit -f {})'"                                                  
 #alias llh='get_git_dir | xargs lazygit -f'                                      
