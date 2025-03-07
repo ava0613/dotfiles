@@ -2,12 +2,14 @@
 # 
 #
 export FZF_DEFAULT_OPTS="\
+--cycle
 --preview 'bat --style=numbers --color=always --line-range :500 {}' \
 --bind ctrl-p:preview-up,ctrl-n:preview-down,\
 ctrl-b:preview-page-up,ctrl-f:preview-page-down,\
 ctrl-u:preview-half-page-up,ctrl-d:preview-half-page-down,\
 ctrl-h:preview-top,ctrl-e:preview-bottom,\
 alt-up:half-page-up,alt-up:half-page-down"
+#--wrap --wrap-sign '>> '
 
 
 alias cdw='cd ~/work'
@@ -19,15 +21,18 @@ alias tmuxo='tmux -f ~/.config/tmux/tmux.conf.outer'
 alias tmuxi='tmux -f ~/.config/tmux/tmux.conf.inner'
 alias tmux18='tmux -f ~/.config/tmux/tmux18.conf.inner'
 
+#alias cdp='cd $(ls ~/work | fzf)'
+
 fzf_dir() # get the dir of a path selected with fzf, searches only in homedir
 {
     if [ -n "$1" ]
     then
       input_path=$1
     else
-      input_path=~/tmp
+      input_path=""
     fi
-    path=$(find $input_path | fzf)
+    #path=$(find $input_path | fzf)
+    path=$(rg --files --color never $input_path | fzf --cycle)
     if [ -d "$path" ]; then
         printf $path
     else
@@ -41,16 +46,21 @@ fzf_cd()
     ls -la
 }
 alias fcd=fzf_cd
-#alias fcd='cd $(fzf_dir); ls -la'
-#
+  #
 fzf_mc()
 {
    mc $(fzf_dir $1)
 }
 alias mcd=fzf_mc
-#alias mcd='mc $(fzf_dir)'
+
+cd_project()
+{
+   cd ~/work/$(ls ~/work | fzf --cycle)
+}
+alias cdp=cd_project
 
 alias fvi="fzf --bind 'enter:execute(nvim.appimage {})'"
+alias fzz="fzf --bind 'enter:execute(cat {})'"
 
 # git stuff
 alias deltav='delta --side-by-side'
