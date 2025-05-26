@@ -35,15 +35,23 @@ fzf_dir() # get the dir of a path selected with fzf, searches only in homedir
     path=$(rg --files --color never $input_path | fzf --cycle)
     if [ -d "$path" ]; then
         printf $path
-    else
+    elif [ -n "$path" ]; then
         printf $(dirname $path)
+    fi
+}
+
+cd_into()
+{
+    if [ -n "$1" ]; then
+      echo $1
+      cd "$1"
+      ls -la
     fi
 }
 
 fzf_cd()
 {
-    cd $(fzf_dir $1)
-    ls -la
+    cd_into $(fzf_dir $1)
 }
 alias fcd=fzf_cd
   #
@@ -55,12 +63,45 @@ alias mcd=fzf_mc
 
 cd_project()
 {
-   cd ~/work/$(ls ~/work | fzf --cycle)
+   dir="$HOME/work/$({ ls ~/work | sort -r ; echo '.'; }  | fzf --cycle --no-sort --tiebreak=index)"
+   cd_into $dir
 }
 alias cdp=cd_project
 
+cd_pproject()
+{
+   project=$(ls ~/work | fzf --cycle)
+   if [ -n "$project" ]; then
+      cd_into $(fzf_dir ~/work/$project)
+   fi
+}
+alias cdpp=cd_pproject
+
 alias fvi="fzf --bind 'enter:execute(nvim.appimage {})'"
 alias fzz="fzf --bind 'enter:execute(cat {})'"
+
+fzf_cd_git()
+{
+    dir="$(fzf_dir $(git rev-parse --show-toplevel))"
+    cd_into $dir
+}
+alias cdg=fzf_cd_git
+
+
+# fzf history search and execute
+fhist() {
+    if [[ -n "$1" ]]; then
+        history | grep $1 | fzf --tac --no-sort | sed 's/ *[0-9]* *//' | xargs -r bash -c
+    else
+        #cmd="history | fzf --tac  | sed 's/ *[0-9]* *//'op" 
+        cmd="history | fzf --tac  | sed 's/ *[0-9]* *//'" 
+        cmd_to_inject=$(eval "$cmd")
+    fi
+    echo "$cmd_to_inject"
+    READLINE_LINE="$cmd_to_inject"
+    READLINE_POINT="${#READLINE_LINE}"
+}
+
 
 # git stuff
 alias deltav='delta --side-by-side'
