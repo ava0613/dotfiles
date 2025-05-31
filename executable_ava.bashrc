@@ -1,18 +1,43 @@
 ###########
 # 
 #
+eval "$(zoxide init bash)"
+
+_fzf_preview_command() {
+    local item="$1" # The highlighted fzf item is passed as the first argument
+
+    # Check if the item is a directory
+    if [ -d "$item" ]; then
+        # If it's a directory, show 'ls -l' of its contents
+        # Adding --color=always is good for readability
+        ls -l --color=always "$item"
+    else
+        # If it's a file, show its content using bat or fall back to cat
+        if command -v bat &>/dev/null; then
+            # Use bat with colors and line numbers
+            bat --color=always --style=numbers "$item"
+        else
+            # Fallback to cat if bat is not found
+            cat "$item"
+        fi
+    fi
+}
+export -f _fzf_preview_command
+
 export FZF_DEFAULT_OPTS="\
 --cycle
---preview 'bat --style=numbers --color=always --line-range :500 {}' \
---bind ctrl-p:preview-up,ctrl-n:preview-down,\
-ctrl-b:preview-page-up,ctrl-f:preview-page-down,\
-ctrl-u:preview-half-page-up,ctrl-d:preview-half-page-down,\
-ctrl-h:preview-top,ctrl-e:preview-bottom,\
-alt-up:half-page-up,alt-up:half-page-down"
-#--wrap --wrap-sign '>> '
+--preview-window=hidden \
+--preview='_fzf_preview_command {}' \
+--bind 'ctrl-e:execute(vi {})' \
+--bind ctrl-v:toggle-preview,\
+ctrl-i:preview-up,ctrl-k:preview-down,\
+ctrl-p:preview-page-up,\;:preview-page-down,\
+ctrl-j:preview-half-page-up,ctrl-l:preview-half-page-down,\
+ctrl-u:preview-top,ctrl-o:preview-bottom,\
+alt-up:half-page-up,alt-up:half-page-down \
+"
+#--wrap --wrap-sign '>> ' \
 
-
-alias cdw='cd ~/work'
 alias cdava='cd '$HOME'/work/avadev'
 
 alias che='chezmoi'
@@ -21,17 +46,16 @@ alias tmuxo='tmux -f ~/.config/tmux/tmux.conf.outer'
 alias tmuxi='tmux -f ~/.config/tmux/tmux.conf.inner'
 alias tmux18='tmux -f ~/.config/tmux/tmux18.conf.inner'
 
-#alias cdp='cd $(ls ~/work | fzf)'
 
-fzf_dir() # get the dir of a path selected with fzf, searches only in homedir
+fzf_dir_from_path() # get the dir of a path selected with fzf, searches only in homedir
 {
     if [ -n "$1" ]
     then
       input_path=$1
     else
-      input_path=""
+      input_path="."
     fi
-    #path=$(find $input_path | fzf)
+    #path=$(find $input_path | fzf --cycle)
     path=$(rg --files --color never $input_path | fzf --cycle)
     if [ -d "$path" ]; then
         printf $path
@@ -39,8 +63,20 @@ fzf_dir() # get the dir of a path selected with fzf, searches only in homedir
         printf $(dirname $path)
     fi
 }
+fzf_dir() # get the dir of a path selected with fzf, searches only in homedir
+{
+    if [ -n "$1" ]
+    then
+      input_path=$1
+    else
+      input_path="."
+    fi
+    path=$(find $input_path -type d | grep -v ".git" | fzf --cycle)
+    #path=$(rg --files --color never $input_path | fzf --cycle)
+    printf $path
+}
 
-cd_into()
+cd_into() # cd into dir, but but guard against empty "cd" (which would take into home)
 {
     if [ -n "$1" ]; then
       echo $1
@@ -49,43 +85,44 @@ cd_into()
     fi
 }
 
-fzf_cd()
-{
-    cd_into $(fzf_dir $1)
-}
-alias fcd=fzf_cd
-  #
-fzf_mc()
-{
-   mc $(fzf_dir $1)
-}
-alias mcd=fzf_mc
+#fzf_cd()
+#{
+#    cd_into $(fzf_dir_from_path $1)
+#}
+#alias fcd=fzf_cd
 
-cd_project()
+#fzf_mc()
+#{
+#   mc $(fzf_dir_from_path $1)
+#
+##alias mcd=fzf_mc
+
+cd_project() # select a project with fzf then cd into it
 {
    dir="$HOME/work/$({ ls ~/work | sort -r ; echo '.'; }  | fzf --cycle --no-sort --tiebreak=index)"
    cd_into $dir
 }
-alias cdp=cd_project
 
+# select a project with fzf, then further fzf it, and cd into the selected path's dir
 cd_pproject()
 {
    project=$(ls ~/work | fzf --cycle)
    if [ -n "$project" ]; then
-      cd_into $(fzf_dir ~/work/$project)
+      cd_into $(fzf_dir_from_path ~/work/$project)
    fi
 }
-alias cdpp=cd_pproject
 
-alias fvi="fzf --bind 'enter:execute(nvim.appimage {})'"
+#alias fvi="fzf --bind 'enter:execute(nvim.appimage {})'"
+alias fvi="fzf --bind 'enter:execute(vi {})'"
 alias fzz="fzf --bind 'enter:execute(cat {})'"
 
-fzf_cd_git()
-{
-    dir="$(fzf_dir $(git rev-parse --show-toplevel))"
-    cd_into $dir
-}
-alias cdg=fzf_cd_git
+#fzf_cd_git()
+#{
+#    dir="$(fzf_dir_from_path $(git rev-parse --show-toplevel))"
+#    cd_into $dir
+#}
+#alias xcdg=fzf_cd_git
+
 
 
 # fzf history search and execute
@@ -101,7 +138,6 @@ fhist() {
     READLINE_LINE="$cmd_to_inject"
     READLINE_POINT="${#READLINE_LINE}"
 }
-
 
 # git stuff
 alias deltav='delta --side-by-side'
@@ -183,6 +219,148 @@ function parse_git_branch {
 
 #export PS1="\n\t \[\033[32m\]\w\[\033[33m\]\$(parse_git_branch)\[\033[00m\] $ "
 
+
+# kubernetes
+alias k='kubectl'
+
+get_pod() {
+    n_opt="" 
+    if [[ "$@" =~ (-n [^[:space:]]+) ]]; then
+        n_opt="${BASH_REMATCH[1]}"
+    fi
+    POD_NAME=$(kubectl get pods $n_opt | grep $2 | awk '{print $1}' )
+    pod_count=$(printf "%s" "$POD_NAME" | wc -w)
+    if (( pod_count > 1 )); then
+       echo "ERROR: Multiple pods match, rephrase"
+       echo "$POD_NAME"
+       exit 1
+       return 1
+    fi
+    echo "$POD_NAME"
+}
+get_pods() {
+    n_opt="" 
+    if [[ "$@" =~ (-n [^[:space:]]+) ]]; then
+        n_opt="${BASH_REMATCH[1]}"
+    fi
+    POD_NAME=$(kubectl get pods $n_opt | grep $2 | awk '{print $1}' )
+    pod_count=$(printf "%s" "$POD_NAME" | wc -w)
+    echo "$POD_NAME"
+}
+
+ku() {
+  if [[ "$1" == "cfg" ]]; then
+    # switch kube config if a config was specified
+    if [ -n "$2" ]; then
+      kube_config='config.'$2
+      backup_cmd="cp ~/.kube/config ~/.kube/config.bak"
+      echo ">> "$backup_cmd
+      eval $backup_cmd
+      set_cmd="cp ~/.kube/$kube_config ~/.kube/config"
+      echo ">> "$set_cmd
+      eval $set_cmd
+    fi
+    # either way, list context
+    echo 
+    cmd="ls -l ~/.kube/"
+    echo ">> "$cmd
+    eval $cmd
+    cmd="kubectl config get-contexts"
+    echo ">> "$cmd
+    eval $cmd
+  elif [[ "$1" == "ctx" ]]; then
+    # switch context if a context was specified
+    if [ -n "$2" ]; then
+      cmd="kubectl config use-context "$2
+      echo ">> "$cmd
+      eval $cmd
+    fi
+    # either way, list context
+    cmd="kubectl config get-contexts"
+    echo ">> "$cmd
+    eval $cmd
+  elif [[ "$1" == "log" ]]; then
+    POD_NAME=$(get_pod "$@")
+    if [[ $POD_NAME =~ "ERROR"  ]]; then
+       echo "$POD_NAME"
+       return 1
+    fi
+    cmd="kubectl logs $POD_NAME ${@:3}"
+    echo ">> "$cmd
+    eval $cmd
+    echo "<< "$cmd
+  elif [[ "$1" == "logf" ]]; then
+    POD_NAME=$(get_pod "$@")
+    if [[ $POD_NAME =~ "ERROR"  ]]; then
+       echo "$POD_NAME"
+       return 1
+    fi
+    cmd="kubectl logs $POD_NAME -f --tail=10 ${@:3}"
+    echo ">> "$cmd
+    eval $cmd
+  elif [[ "$1" == "logx" ]]; then
+    PODS=$(get_pods "$@")
+    for pod in $PODS; do
+       cmd="kubectl logs $pod --tail=10  ${@:3} "
+       echo ">> "$cmd
+       eval $cmd
+       echo "<< "$cmd
+       echo
+    done
+  elif [[ "$1" == "exec" ]]; then
+    pod_name=$(get_pod "$@")
+    if [[ $pod_name =~ "error"  ]]; then
+       echo "$pod_name"
+       return 1
+    fi
+    cmd="kubectl exec $pod_name ${@:3}"
+    echo ">> "$cmd
+    eval $cmd
+  elif [[ "$1" == "bash" ]]; then
+    pod_name=$(get_pod "$@")
+    if [[ $pod_name =~ "error"  ]]; then
+       echo "$pod_name"
+       return 1
+    fi
+    cmd="kubectl exec -it $pod_name ${@:3} -- bash"
+    echo ">> "$cmd
+    eval $cmd
+  elif [[ "$1" == "desc" ]]; then
+    POD_NAME=$(get_pod "$@")
+    if [[ $POD_NAME =~ "ERROR"  ]]; then
+       echo "$POD_NAME"
+       return 1
+    fi
+    cmd="kubectl describe pod $POD_NAME ${@:3}"
+    echo ">> "$cmd
+    eval $cmd
+    echo "<< "$cmd
+  elif [[ "$1" == "pods" ]]; then
+    NS_NAME=$(kubectl get ns | grep $2 | awk '{print $1}' )
+    ns_count=$(printf "%s" "$NS_NAME" | wc -w)
+    if (( ns_count > 1 )); then
+       echo "ERROR: Multiple namespaces match, rephrase"
+       echo "$NS_NAME"
+       return 1
+    elif (( ns_count == 0 )); then
+       cmd="kubectl get pod ${@:3} -o wide"
+    else
+       cmd="kubectl get pod -n $NS_NAME ${@:3} -o wide"
+    fi
+    echo ">> "$cmd
+    eval $cmd
+    echo "<< "$cmd
+  else 
+    echo "Use kube cfg|ctx ..."
+  fi
+
+}
+
+alias kex='ku exec'
+alias klog='ku log'
+alias klogf='ku logf'
+alias kdesc='ku desc'
+
 #########
 # MT stuff
 
@@ -234,17 +412,12 @@ else # default atom machines
     ATOM_RUNTIME=$HOME'/atom_runtime'                                                  
 fi
 
-alias cda='cd $ATOM_ROOT'                                                        
-alias fcda='cd $(find $ATOM_ROOT -type d | fzf ); ls -l'                                
-alias mca='mc $(find $ATOM_ROOT -type d | fzf )'
+if [ -d $HOME'/work/atom-helm' ]; then # in a dev env
+    ATOM_HELM=$HOME'/work/atom-helm'                                                  
+else # default atom machines
+    ATOM_HELM=$HOME'/atom-helm'                                                  
+fi
 
-alias cdar='cd $ATOM_RUNTIME'                                                        
-alias fcdar='cd $(find $ATOM_RUNTIME -type d | fzf ); ls -l'                                
-alias mcar='mc $(find $ATOM_RUNTIME -type d | fzf )'
-
-# find the full path of a file wihin the atom project, regardless of your current path  
-alias ffa="find $ATOM_ROOT | fzf "                                                
-alias ffar="find $ATOM_RUNTIME | fzf "                                                
 
 alias agg="find $ATOM_ROOT | fzf --bind 'enter:execute(lazygit -f {})'"                                                  
 #alias llh='get_git_dir | xargs lazygit -f'                                      
@@ -270,4 +443,81 @@ alias smixdev='ssh smix@smixdev.telekom.intra'
 alias smixdev2='ssh smix@smixdev2.telekom.intra'
 alias smixdev3='ssh smix@smixdev3.telekom.intra'
 
+## CD shortcuts
+# concept:
+#   cdx --- plain cd into some x dir
+#   xcd --- fzf on the recursive dirs/subdirs of x, then cd into the selection
+#   xcdf --- fzf on the recursive files of x, then cd into the selected file's dir
+
+# >> generic CD shortcuts  #cd_shortcut
+alias cdw='cd $HOME/work' 
+alias cdg='cd $(git rev-parse --show-toplevel)' # cd into project root by git
+alias fcd="cd_into \$(fzf_dir $1)" # fzf_cd on a dir
+alias fcdf="cd_into \$(fzf_dir_from_path $1)" # fzf_cd on specified path
+alias gcd="cd_into \$(fzf_dir $(git rev-parse --show-toplevel))" # fzf_cd from project root (on dirs)
+alias gcdf="cd_into \$(fzf_dir_from_path $(git rev-parse --show-toplevel))" # fzf_cd from project root (on files)
+alias pcd=cd_project # fzf_cd on projects in ~/work
+alias ppcd=cd_pproject # fzf_cd on projects, then again on the selected one
+
+# >> CDx shortcuts for projects #cd_shortcut
+alias cda='cd $ATOM_ROOT'                                                        
+alias cdab='cd $ATOM_ROOT/build'                                                        
+alias cdas='cd $ATOM_ROOT/sources'                                                        
+alias cdap='cd $ATOM_ROOT/sources/projects'
+alias cdar='cd $ATOM_RUNTIME'                                                        
+alias cdars='cd $ATOM_RUNTIME/deploy/stage'
+alias cdarp='cd $ATOM_RUNTIME/deploy/prod'
+alias cdah='cd $ATOM_HELM'
+# >> xCD shortcuts for projects   #cd_shortcut
+alias acd='cd_into $(fzf_dir $ATOM_ROOT)'
+alias abcd='cd_into $(fzf_dir $ATOM_ROOT/build)'
+alias ascd='cd_into $(fzf_dir $ATOM_ROOT/sources)'
+alias apcd='cd_into $(fzf_dir $ATOM_ROOT/sources/projects)'
+alias arcd='cd_into $(fzf_dir $ATOM_RUNTIME)'
+alias arscd='cd_into $(fzf_dir $ATOM_RUNTIME/deploy/stage)'
+alias arpcd='cd_into $(fzf_dir $ATOM_RUNTIME/deploy/prod)'
+alias ahcd='cd_into $(fzf_dir $ATOM_HELM)'
+# >> xCDf shortcuts for projects   #cd_shortcut
+alias acdf='cd_into $(fzf_dir_from_path $ATOM_ROOT)'
+alias abcdf='cd_into $(fzf_dir_from_path $ATOM_ROOT/build)'
+alias ascdf='cd_into $(fzf_dir_from_path $ATOM_ROOT/sources)'
+alias apcdf='cd_into $(fzf_dir_from_path $ATOM_ROOT/sources/projects)'
+alias arcdf='cd_into $(fzf_dir_from_path $ATOM_RUNTIME)'
+alias arscdf='cd_into $(fzf_dir_from_path $ATOM_RUNTIME/deploy/stage)'
+alias arpcdf='cd_into $(fzf_dir_from_path $ATOM_RUNTIME/deploy/prod)'
+alias ahcdf='cd_into $(fzf_dir_from_path $ATOM_HELM)'
+
+## some help to keep thing in my human buffer
+ava_help() {
+###
+  if [[ "$1" == "alias" ]]; then
+    #grep ^alias $HOME/ava.bashrc
+    alias | grep alias
+###
+  elif [[ "$1" == "git" ]]; then
+    echo "#
+# some git help/reminder - useful git commands
+git diff 0dca0..86ad2f NodataService.py | delta 
+git log -p -5
+git show 0dca0 NodataService.py > NodataService.py.older
+git stash, or, git stash push -m "message"
+git stash list
+git stash pop
+"
+    alias | grep -e "^alias gg" | grep -v grep
+###
+  elif [[ "$1" == "cd" ]]; then
+    egrep "^alias|cd_shortcut" $HOME/ava.bashrc | grep cd 
+    #alias | grep cd
+    echo "#
+# concept:
+#   cdx --- plain cd into some x dir
+#   xcd --- fzf on the recursive dirs/subdirs of x, then cd into the selection
+#   xcdf --- fzf on the recursive files of x, then cd into the selected file's dir
+"
+  else
+    echo "ava alias,git,cd"
+  fi
+}
+alias ava=ava_help
 
