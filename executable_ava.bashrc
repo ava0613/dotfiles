@@ -1,7 +1,32 @@
 ###########
 # 
 #
-eval "$(zoxide init bash)"
+
+export PATH="$HOME/.cargo/bin:$PATH"
+
+
+eval "$(zoxide init --cmd j bash)" # j and ji as cd
+alias zz=zoxide
+
+# if zoxide is installed, let zoxide handle the cd-s 
+if command -v zoxide &>/dev/null; then ZOXIDE_IS_INSTALLED=1; 
+    alias 'cd_cmd=j'; else echo "WARNING: zoxide not found"; alias 'cd_cmd=cd'; fi
+if command -v fzf &>/dev/null; then FZF_IS_INSTALLED=1; 
+  else echo "WARNING: fzf not found";  fi
+if command -v git &>/dev/null; then GIT_IS_INSTALLED=1; 
+  else echo "WARNING: git not found";  fi
+if command -v rg &>/dev/null; then RG_IS_INSTALLED=1; 
+  else RG_IS_INSTALLED=0; echo "WARNING: rg not found";  fi
+
+
+function y() {
+	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+	yazi "$@" --cwd-file="$tmp"
+	IFS= read -r -d '' cwd < "$tmp"
+	[ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
+	rm -f -- "$tmp"
+}
+
 
 _fzf_preview_command() {
     local item="$1" # The highlighted fzf item is passed as the first argument
@@ -38,10 +63,10 @@ alt-up:half-page-up,alt-up:half-page-down \
 "
 #--wrap --wrap-sign '>> ' \
 
-alias cdava='cd '$HOME'/work/avadev'
+alias jjava='$cd_cmd '$HOME'/work/avadev'
 
 alias che='chezmoi'
-alias cdche='cd ~/.local/share/chezmoi'
+alias jjche='cd_cmd ~/.local/share/chezmoi'
 alias tmuxo='tmux -f ~/.config/tmux/tmux.conf.outer'
 alias tmuxi='tmux -f ~/.config/tmux/tmux.conf.inner'
 alias tmux18='tmux -f ~/.config/tmux/tmux18.conf.inner'
@@ -49,14 +74,17 @@ alias tmux18='tmux -f ~/.config/tmux/tmux18.conf.inner'
 
 fzf_dir_from_path() # get the dir of a path selected with fzf, searches only in homedir
 {
-    if [ -n "$1" ]
-    then
+    if [ -n "$1" ]; then
       input_path=$1
     else
       input_path="."
     fi
-    #path=$(find $input_path | fzf --cycle)
-    path=$(rg --files --color never $input_path | fzf --cycle)
+    if [[ $RG_IS_INSTALLED -eq 1 ]]; then
+        # rg respects gitignore, it is faster, etc
+        path=$(rg --files --color never $input_path | fzf --cycle)
+    else
+        path=$(find $input_path | fzf --cycle)
+    fi
     if [ -d "$path" ]; then
         printf $path
     elif [ -n "$path" ]; then
@@ -80,7 +108,7 @@ cd_into() # cd into dir, but but guard against empty "cd" (which would take into
 {
     if [ -n "$1" ]; then
       echo $1
-      cd "$1"
+      cd_cmd "$1"
       ls -la
     fi
 }
@@ -445,47 +473,47 @@ alias smixdev3='ssh smix@smixdev3.telekom.intra'
 
 ## CD shortcuts
 # concept:
-#   cdx --- plain cd into some x dir
-#   xcd --- fzf on the recursive dirs/subdirs of x, then cd into the selection
-#   xcdf --- fzf on the recursive files of x, then cd into the selected file's dir
+#   jjx --- plain cd into some x dir
+#   ddx --- fzf on the recursive dirs/subdirs of x, then cd into the selection
+#   ffx --- fzf on the recursive files of x, then cd into the selected file's dir
 
 # >> generic CD shortcuts  #cd_shortcut
-alias cdw='cd $HOME/work' 
-alias cdg='cd $(git rev-parse --show-toplevel)' # cd into project root by git
-alias fcd="cd_into \$(fzf_dir $1)" # fzf_cd on a dir
-alias fcdf="cd_into \$(fzf_dir_from_path $1)" # fzf_cd on specified path
-alias gcd="cd_into \$(fzf_dir $(git rev-parse --show-toplevel))" # fzf_cd from project root (on dirs)
-alias gcdf="cd_into \$(fzf_dir_from_path $(git rev-parse --show-toplevel))" # fzf_cd from project root (on files)
-alias pcd=cd_project # fzf_cd on projects in ~/work
-alias ppcd=cd_pproject # fzf_cd on projects, then again on the selected one
+alias jjw='cd_cmd $HOME/work' 
+alias fd="cd_into \$(fzf_dir $1)" # fzf_cd on a dir
+alias ff="cd_into \$(fzf_dir_from_path $1)" # fzf_cd on specified path
+alias jjg='cd_cmd $(git rev-parse --show-toplevel)' # cd into project root by git
+alias ddg="cd_into \$(fzf_dir \$(git rev-parse --show-toplevel))" # fzf_cd from project root (on dirs)
+alias ffg="cd_into \$(fzf_dir_from_path \$(git rev-parse --show-toplevel))" # fzf_cd from project root (on files)
+alias ddp=cd_project # fzf_cd on projects in ~/work
+alias ddpp=cd_pproject # fzf_cd on projects, then find files in the selected one
 
-# >> CDx shortcuts for projects #cd_shortcut
-alias cda='cd $ATOM_ROOT'                                                        
-alias cdab='cd $ATOM_ROOT/build'                                                        
-alias cdas='cd $ATOM_ROOT/sources'                                                        
-alias cdap='cd $ATOM_ROOT/sources/projects'
-alias cdar='cd $ATOM_RUNTIME'                                                        
-alias cdars='cd $ATOM_RUNTIME/deploy/stage'
-alias cdarp='cd $ATOM_RUNTIME/deploy/prod'
-alias cdah='cd $ATOM_HELM'
-# >> xCD shortcuts for projects   #cd_shortcut
-alias acd='cd_into $(fzf_dir $ATOM_ROOT)'
-alias abcd='cd_into $(fzf_dir $ATOM_ROOT/build)'
-alias ascd='cd_into $(fzf_dir $ATOM_ROOT/sources)'
-alias apcd='cd_into $(fzf_dir $ATOM_ROOT/sources/projects)'
-alias arcd='cd_into $(fzf_dir $ATOM_RUNTIME)'
-alias arscd='cd_into $(fzf_dir $ATOM_RUNTIME/deploy/stage)'
-alias arpcd='cd_into $(fzf_dir $ATOM_RUNTIME/deploy/prod)'
-alias ahcd='cd_into $(fzf_dir $ATOM_HELM)'
-# >> xCDf shortcuts for projects   #cd_shortcut
-alias acdf='cd_into $(fzf_dir_from_path $ATOM_ROOT)'
-alias abcdf='cd_into $(fzf_dir_from_path $ATOM_ROOT/build)'
-alias ascdf='cd_into $(fzf_dir_from_path $ATOM_ROOT/sources)'
-alias apcdf='cd_into $(fzf_dir_from_path $ATOM_ROOT/sources/projects)'
-alias arcdf='cd_into $(fzf_dir_from_path $ATOM_RUNTIME)'
-alias arscdf='cd_into $(fzf_dir_from_path $ATOM_RUNTIME/deploy/stage)'
-alias arpcdf='cd_into $(fzf_dir_from_path $ATOM_RUNTIME/deploy/prod)'
-alias ahcdf='cd_into $(fzf_dir_from_path $ATOM_HELM)'
+# >> jjx shortcuts for projects #cd_shortcut
+alias jja='cd_into $ATOM_ROOT'                                                        
+alias jjab='cd_into $ATOM_ROOT/build'                                                        
+alias jjas='cd_into $ATOM_ROOT/sources'                                                        
+alias jjap='cd_into $ATOM_ROOT/sources/projects'
+alias jjar='cd_into $ATOM_RUNTIME'                                                        
+alias jjars='cd_into $ATOM_RUNTIME/deploy/stage'
+alias jjarp='cd_into $ATOM_RUNTIME/deploy/prod'
+alias jjah='cd_into $ATOM_HELM'
+# >> ddx shortcuts for projects   #cd_shortcut
+alias dda='cd_into $(fzf_dir $ATOM_ROOT)'
+alias ddab='cd_into $(fzf_dir $ATOM_ROOT/build)'
+alias ddas='cd_into $(fzf_dir $ATOM_ROOT/sources)'
+alias ddap='cd_into $(fzf_dir $ATOM_ROOT/sources/projects)'
+alias ddar='cd_into $(fzf_dir $ATOM_RUNTIME)'
+alias ddars='cd_into $(fzf_dir $ATOM_RUNTIME/deploy/stage)'
+alias ddarp='cd_into $(fzf_dir $ATOM_RUNTIME/deploy/prod)'
+alias ddah='cd_into $(fzf_dir $ATOM_HELM)'
+# >> ffx shortcuts for projects   #cd_shortcut
+alias ffa='cd_into $(fzf_dir_from_path $ATOM_ROOT)'
+alias ffab='cd_into $(fzf_dir_from_path $ATOM_ROOT/build)'
+alias ffas='cd_into $(fzf_dir_from_path $ATOM_ROOT/sources)'
+alias ffap='cd_into $(fzf_dir_from_path $ATOM_ROOT/sources/projects)'
+alias ffar='cd_into $(fzf_dir_from_path $ATOM_RUNTIME)'
+alias ffars='cd_into $(fzf_dir_from_path $ATOM_RUNTIME/deploy/stage)'
+alias ffarp='cd_into $(fzf_dir_from_path $ATOM_RUNTIME/deploy/prod)'
+alias ffah='cd_into $(fzf_dir_from_path $ATOM_HELM)'
 
 ## some help to keep thing in my human buffer
 ava_help() {
@@ -511,9 +539,9 @@ git stash pop
     #alias | grep cd
     echo "#
 # concept:
-#   cdx --- plain cd into some x dir
-#   xcd --- fzf on the recursive dirs/subdirs of x, then cd into the selection
-#   xcdf --- fzf on the recursive files of x, then cd into the selected file's dir
+#   jjx --- plain cd into some x dir
+#   ddx --- fzf on the recursive dirs/subdirs of x, then cd into the selection
+#   ffx --- fzf on the recursive files of x, then cd into the selected file's dir
 "
   else
     echo "ava alias,git,cd"
