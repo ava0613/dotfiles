@@ -8,16 +8,26 @@ set shiftwidth=4 " for autoindent
 set ruler " bottom line status
 set number " line numbers
 set ignorecase " in search
+"set wildoptions=pum " (only in vim9) vertical popupmenu for options instead of lateral
 
 let mapleader = " "
 nnoremap <Leader>w :w<CR>
 nnoremap <Leader>q :q<CR>
-nnoremap <Leader>x :x<CR> "wq
-nnoremap <Leader>y "+y "yank to system clipboard, when it works
-nnoremap <Leader>n :set number!<CR> "toggle line numbers
-nnoremap <Leader>c :bd<CR> "close current buffer, but leave others
+nnoremap <Leader>x :x<CR> 
 
-nnoremap <Leader>vv :e $MYVIMRC<CR> 
+nnoremap <Leader>y "+y | "yank to system clipboard, when it works
+nnoremap <Leader>n :set number!<CR> | "toggle line numbers
+
+"buffers
+nnoremap <Leader>c :bd<CR> | "close current buffer, but leave others
+nnoremap <Leader><Down> :b#<CR> | "buffer alt-tab
+noremap <Leader><Right> :bnext<CR>
+nnoremap <Leader><Left> :bprevious<CR>
+nnoremap <Leader><Up> :ls<CR> | "list buffers
+
+" load vimrc
+nnoremap <Leader>vv :e $MYVIMRC<CR>  | "load my vimrc
+nnoremap <Leader>ee :Explore<CR> | " file explorer
 
 " quick ref 
 " :%s/old/new/g  -- replace all 

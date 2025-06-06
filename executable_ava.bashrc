@@ -140,6 +140,27 @@ cd_pproject()
    fi
 }
 
+
+# scp some of the dot files to a remote machine
+#public_cmd dot_scp <remote_host> -- quick move some dotconfig files to a remote machine
+dot_scp() { 
+  local remote_host=$1
+  #scp $HOME/ava.bashrc $1:~/ava.bashrc
+  #scp $HOME/.vimrc $1:~/.vimrc
+  #scp $HOME/.config/mc/ini $1:~/.config/mc/ini
+  #sftp -q -P "$REMOTE_PORT" "$REMOTE_ALIAS" <<EOF_SFTP_COMMANDS
+  # use sftp iinstead of scp so that password would be asked only once
+  sftp -q "$1" <<EOF_SFTP_COMMANDS
+  cd
+  lcd
+  put ava.bashrc ava.bashrc
+  put .vimrc .vimrc
+  put .config/mc/ini .config/mc/ini
+  bye
+EOF_SFTP_COMMANDS
+}
+
+
 #alias fvi="fzf --bind 'enter:execute(nvim.appimage {})'"
 alias fvi="fzf --bind 'enter:execute(vi {})'"
 alias fzz="fzf --bind 'enter:execute(cat {})'"
@@ -313,7 +334,8 @@ build_cmd_help() {
     echo "$output"
 }
 
-ku() {
+#public_cmd ku -- customized kube shortcuts, type ku for more help
+ku() { 
   # common command syntax
   if [[ -n "$3" && "$3" != -* ]]; then
     echo "with res"
@@ -604,7 +626,11 @@ git stash pop
 #   ffx --- fzf on the recursive files of x, then cd into the selected file's dir
 "
   else
-    echo 'Get help with: ava '$(build_cmd_help "ava_cmd")
+    echo 'Get targeted help with: ava '$(build_cmd_help "ava_cmd")
+    echo
+    echo 'Also, these are the public commands from ava.bashrc'
+    grep -oP "#public_cmd \K(.*)" $HOME/ava.bashrc | grep -v 'grep -oP "public_cmd"'
+    echo
   fi
 }
 alias ava=ava_help
