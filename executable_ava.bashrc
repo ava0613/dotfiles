@@ -253,10 +253,13 @@ alias k='kubectl'
 
 get_pod() {
     n_opt="" 
+    # get namesace if specified
     if [[ "$@" =~ (-n [^[:space:]]+) ]]; then
         n_opt="${BASH_REMATCH[1]}"
     fi
+    # get and return the mathinc pod ...
     POD_NAME=$(kubectl get pods $n_opt | grep $2 | awk '{print $1}' )
+    # ... but make sure there is only one matching pod
     pod_count=$(printf "%s" "$POD_NAME" | wc -w)
     if (( pod_count > 1 )); then
        echo "ERROR: Multiple pods match, rephrase"
@@ -265,6 +268,26 @@ get_pod() {
        return 1
     fi
     echo "$POD_NAME"
+}
+get_kube_resource() {
+    local resource_type=$1
+    local resource_name_pattern=$2
+    local command_line_options=${@:3}
+    # get namesace if specified
+    local namespace=""
+    if [[ $command_line_options =~ (-n [^[:space:]]+) ]]; then
+        namespace="${BASH_REMATCH[1]}"
+    fi
+    # get and return the matching pod ...
+    resource_name=$(kubectl get $resource_type $namespace | grep "$resource_name_pattern" | awk '{print $1}' )
+    count=$(printf "%s" "$resource_name" | wc -w)
+    if (( count > 1 )); then
+       echo "ERROR: Multiple $resource_type match, rephrase"
+       echo "$resource_name"
+       #exit 1
+       return 1
+    fi
+    echo "$resource_name"
 }
 get_pods() {
     n_opt="" 
@@ -276,8 +299,35 @@ get_pods() {
     echo "$POD_NAME"
 }
 
+build_cmd_help() {
+    # assume our commands in the script are commented with 
+    # something like "...#cmd_group cmd"
+    # we grep the our script for lines containing 
+    # the #cmd_group lines, collect the last words, and returns them
+    # in "cmd1|cmd2|cmd3" format
+    output=$(awk -v cmd_pattern="#$1" '
+      BEGIN {ret=""}
+      $0 ~ cmd_pattern {ret=ret $NF "|"}
+      END {print substr(ret, 1, length(ret)-1)}
+    ' "$HOME/ava.bashrc")
+    echo "$output"
+}
+
 ku() {
-  if [[ "$1" == "cfg" ]]; then
+  # common command syntax
+  if [[ -n "$3" && "$3" != -* ]]; then
+    echo "with res"
+    local resource_type=$2
+    local name_pattern=$3
+    local cmd_options=${@:4}
+  else
+    echo "wo res"
+    local resource_type="pod"
+    local name_pattern=$2
+    local cmd_options=${@:3}
+  fi
+
+  if [[ "$1" == "cfg" ]]; then #ku_cmd cfg
     # switch kube config if a config was specified
     if [ -n "$2" ]; then
       kube_config='config.'$2
@@ -296,7 +346,7 @@ ku() {
     cmd="kubectl config get-contexts"
     echo ">> "$cmd
     eval $cmd
-  elif [[ "$1" == "ctx" ]]; then
+  elif [[ "$1" == "ctx" ]]; then #ku_cmd ctx
     # switch context if a context was specified
     if [ -n "$2" ]; then
       cmd="kubectl config use-context "$2
@@ -307,26 +357,26 @@ ku() {
     cmd="kubectl config get-contexts"
     echo ">> "$cmd
     eval $cmd
-  elif [[ "$1" == "log" ]]; then
-    POD_NAME=$(get_pod "$@")
-    if [[ $POD_NAME =~ "ERROR"  ]]; then
-       echo "$POD_NAME"
+  elif [[ "$1" == "log" ]]; then #ku_cmd log
+    resource_name="$(get_kube_resource $resource_type $name_pattern $cmd_options)"
+    if [[ $resource_name =~ "ERROR"  ]]; then
+       echo "$resource_name"
        return 1
     fi
-    cmd="kubectl logs $POD_NAME ${@:3}"
+    cmd="kubectl logs $resource_name $cmd_options"
     echo ">> "$cmd
     eval $cmd
     echo "<< "$cmd
-  elif [[ "$1" == "logf" ]]; then
-    POD_NAME=$(get_pod "$@")
-    if [[ $POD_NAME =~ "ERROR"  ]]; then
-       echo "$POD_NAME"
+  elif [[ "$1" == "logf" ]]; then #ku_cmd logf
+    resource_name="$(get_kube_resource $resource_type $name_pattern $cmd_options)"
+    if [[ $resource_name =~ "ERROR"  ]]; then
+       echo "$resource_name"
        return 1
     fi
-    cmd="kubectl logs $POD_NAME -f --tail=10 ${@:3}"
+    cmd="kubectl logs $resource_name -f --tail=10 $cmd_options"
     echo ">> "$cmd
     eval $cmd
-  elif [[ "$1" == "logx" ]]; then
+  elif [[ "$1" == "logx" ]]; then #ku_cmd logx
     PODS=$(get_pods "$@")
     for pod in $PODS; do
        cmd="kubectl logs $pod --tail=10  ${@:3} "
@@ -335,35 +385,45 @@ ku() {
        echo "<< "$cmd
        echo
     done
-  elif [[ "$1" == "exec" ]]; then
-    pod_name=$(get_pod "$@")
-    if [[ $pod_name =~ "error"  ]]; then
-       echo "$pod_name"
+  elif [[ "$1" == "exec" ]]; then #ku_cmd exec
+    resource_name="$(get_kube_resource $resource_type $name_pattern $cmd_options)"
+    if [[ $resource_name =~ "ERROR"  ]]; then
+       echo "$resource_name"
        return 1
     fi
-    cmd="kubectl exec $pod_name ${@:3}"
+    cmd="kubectl exec $resource_name $cmd_options"
     echo ">> "$cmd
     eval $cmd
-  elif [[ "$1" == "bash" ]]; then
-    pod_name=$(get_pod "$@")
-    if [[ $pod_name =~ "error"  ]]; then
-       echo "$pod_name"
+  elif [[ "$1" == "bash" ]]; then #ku_cmd bash
+    resource_name="$(get_kube_resource $resource_type $name_pattern $cmd_options)"
+    if [[ $resource_name =~ "ERROR"  ]]; then
+       echo "$resource_name"
        return 1
     fi
-    cmd="kubectl exec -it $pod_name ${@:3} -- bash"
+    cmd="kubectl exec -it $resource_name $cmd_options -- bash"
     echo ">> "$cmd
     eval $cmd
-  elif [[ "$1" == "desc" ]]; then
-    POD_NAME=$(get_pod "$@")
-    if [[ $POD_NAME =~ "ERROR"  ]]; then
-       echo "$POD_NAME"
+  elif [[ "$1" == "desc" ]]; then #ku_cmd desc
+    resource_name="$(get_kube_resource $resource_type $name_pattern $cmd_options)"
+    if [[ $resource_name =~ "ERROR"  ]]; then
+       echo "$resource_name"
        return 1
     fi
-    cmd="kubectl describe pod $POD_NAME ${@:3}"
+    cmd="kubectl describe $resource_type $resource_name $cmd_options"
     echo ">> "$cmd
     eval $cmd
     echo "<< "$cmd
-  elif [[ "$1" == "pods" ]]; then
+  elif [[ "$1" == "yaml" ]]; then #ku_cmd desc
+    resource_name="$(get_kube_resource $resource_type $name_pattern $cmd_options)"
+    if [[ $resource_name =~ "ERROR"  ]]; then
+       echo "$resource_name"
+       return 1
+    fi
+    cmd="kubectl get $resource_type $resource_name $cmd_options -o yaml"
+    echo ">> "$cmd
+    eval $cmd
+    echo "<< "$cmd
+  elif [[ "$1" == "pods" ]]; then #ku_cmd pods
     NS_NAME=$(kubectl get ns | grep $2 | awk '{print $1}' )
     ns_count=$(printf "%s" "$NS_NAME" | wc -w)
     if (( ns_count > 1 )); then
@@ -379,7 +439,7 @@ ku() {
     eval $cmd
     echo "<< "$cmd
   else 
-    echo "Use kube cfg|ctx ..."
+    echo 'Usage: ku '$(build_cmd_help "ku_cmd")
   fi
 
 }
@@ -518,11 +578,11 @@ alias ffah='cd_into $(fzf_dir_from_path $ATOM_HELM)'
 ## some help to keep thing in my human buffer
 ava_help() {
 ###
-  if [[ "$1" == "alias" ]]; then
+  if [[ "$1" == "alias" ]]; then #ava_cmd alias
     #grep ^alias $HOME/ava.bashrc
     alias | grep alias
 ###
-  elif [[ "$1" == "git" ]]; then
+  elif [[ "$1" == "git" ]]; then #ava_cmd git
     echo "#
 # some git help/reminder - useful git commands
 git diff 0dca0..86ad2f NodataService.py | delta 
@@ -534,7 +594,7 @@ git stash pop
 "
     alias | grep -e "^alias gg" | grep -v grep
 ###
-  elif [[ "$1" == "cd" ]]; then
+  elif [[ "$1" == "cd" ]]; then #ava_cmd cd
     egrep "^alias|cd_shortcut" $HOME/ava.bashrc | grep cd 
     #alias | grep cd
     echo "#
@@ -544,7 +604,7 @@ git stash pop
 #   ffx --- fzf on the recursive files of x, then cd into the selected file's dir
 "
   else
-    echo "ava alias,git,cd"
+    echo 'Get help with: ava '$(build_cmd_help "ava_cmd")
   fi
 }
 alias ava=ava_help
