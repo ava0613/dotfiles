@@ -155,7 +155,9 @@ dot_scp() {
   cd
   lcd
   put ava.bashrc ava.bashrc
-  put .vimrc .vimrc
+  #put .vimrc .vimrc
+  mkdir .vim
+  put -r .vim/
   put .config/mc/ini .config/mc/ini
   bye
 EOF_SFTP_COMMANDS
