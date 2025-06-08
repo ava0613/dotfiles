@@ -1,33 +1,201 @@
-syntax on
-colorscheme elflord
-"colorscheme desert
+set nocompatible            | " disable compatibility to old-time vi
+set encoding=utf-8
+syntax on                  |  " syntax highlighting
+filetype plugin indent on   | " allow auto-indenting depending on file type
+"colorscheme elflord
+colorscheme desert
+set hidden " allow switching buffers without having to save
 set paste
-set expandtab "spaces instead of tab
-set tabstop=4 " tabsize
+
+"set ruler " bottom line status
+
+set wildmenu
+"set wildmode=longest,list  | " get bash-like tab completions
+"hihlight WildMenu term=reverse cterm=reverse ctermfg=NONE ctermbg=NONE gui=reverse guifg=NONE guibg=NONE
+"highlight WildMenu ctermfg=15 ctermbg=24
+set wildoptions=pum " (only in vim9) vertical popupmenu for options instead of lateral
+
+
+" indent stuff
+set tabstop=4               | " number of columns occupied by a tab 
+set softtabstop=4           | " see multiple spaces as tabstops so <BS> does the right thing
+set expandtab               | " converts tabs to white space
+set shiftwidth=4            | " width for autoindents
+set autoindent             | " indent a new line the same amount as the line just typed
 set shiftwidth=4 " for autoindent
-set ruler " bottom line status
-set number " line numbers
-set ignorecase " in search
-"set wildoptions=pum " (only in vim9) vertical popupmenu for options instead of lateral
+
+"set mouse=v                 | " middle-click paste with 
+"set mouse=a                 " enable mouse click
+"set clipboard=unnamedplus   " using system clipboard
+set ttyfast               |  " Speed up scrolling in Vim
+" set spell                 " enable spell check (may need to download language package)
+" set noswapfile            " disable creating swap file
+" set backupdir=~/.cache/vim " Directory to store backup files.
+
+""let g:airline_left_sep = '»'
+""let g:airline_right_sep = '«'
+
+
 
 let mapleader = " "
 nnoremap <Leader>w :w<CR>
 nnoremap <Leader>q :q<CR>
-nnoremap <Leader>x :x<CR> 
+nnoremap <Leader>x :x<CR>  | "write and quit
+nnoremap <Leader>c :bd<CR> | "close current buffer, but leave others
 
 nnoremap <Leader>y "+y | "yank to system clipboard, when it works
-nnoremap <Leader>n :set number!<CR> | "toggle line numbers
+
+"line numbers
+set number                  | " add line numbers
+nnoremap <Leader>nn :set number!<CR>         | " toggle line numbers
+nnoremap <Leader>nr :set relativenumber!<CR> | "toggle relative line numbers
+
+" search stuff
+set ignorecase 
+set smartcase 
+set incsearch
+set hlsearch
 
 "buffers
-nnoremap <Leader>c :bd<CR> | "close current buffer, but leave others
 nnoremap <Leader><Down> :b#<CR> | "buffer alt-tab
-noremap <Leader><Right> :bnext<CR>
+nnoremap <Leader><Right> :bnext<CR>
 nnoremap <Leader><Left> :bprevious<CR>
 nnoremap <Leader><Up> :ls<CR> | "list buffers
+nnoremap <Leader><Tab> :buffers<CR> | "list buffers
 
-" load vimrc
-nnoremap <Leader>vv :e $MYVIMRC<CR>  | "load my vimrc
-nnoremap <Leader>ee :Explore<CR> | " file explorer
+" vim config stuff
+nnoremap <Leader>ve :e $MYVIMRC<CR>       | "load my vimrc
+nnoremap <Leader>vs :source $MYVIMRC<CR>  | "source my vimrc
+nnoremap <Leader>vvv :colorscheme 
+nnoremap <Leader>vva :colorscheme quiet<CR>
+nnoremap <Leader>vvw :colorscheme default<CR>
+nnoremap <Leader>vve :colorscheme desert<CR>
+nnoremap <Leader>vvr :colorscheme torte<CR>
+nnoremap <Leader>vvs :colorscheme elflord<CR>
+nnoremap <Leader>vvd :colorscheme zenburn<CR>
+
+" visuals
+set showmatch               | " show matching paranthesis/bracket
+nnoremap <Leader>hs :set hlsearch!<CR> | "toggle highlight when searching
+"set cursorcolumn           | " highlight current cursorcolumn
+"set cursorline             | " highlight current cursorline
+nnoremap <Leader>hl :set cursorline!<CR> | " toggle
+nnoremap <Leader>hc :set cursorcolumn!<CR>
+nnoremap <Leader>hh :set cursorline! cursorcolumn!<CR> | " toggle both at the same time
+nnoremap <silent><leader>hi :execute "set colorcolumn=" . (&colorcolumn == "" ? "80" : "")<CR> | " toggle colorcolumn
+set list lcs=trail:·,tab:»·  " show nasty chars, like illegal tabs and trailing spaces
+"" ¬ →  ⤦  ↩  
+"set list lcs=tab:»·,eol:¬
+
+nnoremap <Leader>ff :EditCwd <Tab>          | " 
+nnoremap <Leader>ee :Vexplore<CR>          | " file explorer    
+nnoremap <Leader>fd :Lexplore<CR> | "open netrw in the dir where vim started
+nnoremap <leader>fe :Lexplore %:p:h<CR> | "open netrw in dir of current file
 
 " quick ref 
 " :%s/old/new/g  -- replace all 
+" gv -- reselect last visual select
+" == indent current line
+" = indent, =ap indent around paragraph
+
+
+" ==============================================================================
+" statusline settings
+set laststatus=2
+set statusline=
+"set statusline+=%#PmenuSel#
+"set statusline+=%#LineNr#
+set statusline+=\ %f
+set statusline+=%m%R
+set statusline+=%=
+set statusline+=%#CursorColumn#
+"set statusline+=%{GetBufferListString()}
+set statusline+=%*
+set statusline+=%=
+set statusline+=%#CursorColumn#
+set statusline+=\ l%l:c%c
+set statusline+=\ [%p%%%L␤]
+set statusline+=\ Ξ%B
+set statusline+=\ %y
+set statusline+=\ %{&fileencoding?&fileencoding:&encoding}
+set statusline+=\[%{&fileformat}\]
+
+
+" ==============================================================================
+" Show Open Buffers in the Tabline
+set showtabline=2
+highlight MyCurrentTabPageBuffer ctermfg=white ctermbg=darkblue 
+highlight MyOtherTabPageBuffer ctermfg=gray ctermbg=black 
+let g:tabline_highlight_group_1 = 'MyCurrentTabPageBuffer'
+let g:tabline_highlight_group_2 = 'MyOtherTabPageBuffer'
+function! MyCustomTabline()
+    let s = ''                             " Initialize an empty string to build the tabline content.
+    let bufnr_list = tabpagebuflist(v:lnum) " Get a list of buffer numbers in the *current* tabpage.
+    let current_buf = bufnr('%')           " Get the number of the buffer currently active in the *current window*.
+
+    " Loop through all *listed* buffers (i.e., not help, quickfix, etc.).
+    for i in getbufinfo({'buflisted':1})
+        let buf_id = i.bufnr                 " Get the buffer number.
+        let buf_name = fnamemodify(i.name, ':t') " Get just the filename (tail) from the full path.
+        if buf_name == ''
+            let buf_name = '[No Name]'       " Handle unnamed buffers.
+        endif
+
+        " Apply highlight based on whether the buffer is in the current tabpage or another.
+        if index(bufnr_list, buf_id) >= 0    " Check if the buffer is in the currently viewed tabpage.
+            let s .= '%1*'                   " Apply highlight for current tabpage buffer (MyCurrentTabPageBuffer).
+        else
+            let s .= '%2*'                   " Apply highlight for other tabpage buffer (MyOtherTabPageBuffer).
+        endif
+
+        " Apply highlight for the currently active buffer (the one with the cursor).
+        if buf_id == current_buf
+            let s .= '%#TabLineSel#'         " Use Vim's built-in 'TabLineSel' for the active buffer.
+        else
+            let s .= '%#TabLine#'            " Use Vim's built-in 'TabLine' for other buffers.
+        endif
+
+        " Make the buffer entry clickable to switch to it.
+        " %{buf_id}T is the special format code for this.
+        let s .= ' %' . buf_id . 'T'
+
+        " Construct the display name for the buffer.
+        let buf_display_name = buf_name
+        if i.changed                        " Append '[+]' if the buffer has unsaved changes.
+            let buf_display_name .= ' [+]'
+        endif
+        " Truncate long names to avoid clutter (adjust 30 as needed).
+        if strlen(buf_display_name) > 30
+            let buf_display_name = strcharpart(buf_display_name, 0, 27) . '...'
+        endif
+        let s .= buf_display_name . ' '     " Add the display name and a space.
+
+        " Reset highlight groups for the next item or end of current item.
+        let s .= '%T'                       " Reset tab highlight (important for clickability).
+        let s .= '%*'                       " Reset custom highlight (back to default).
+    endfor
+
+    " Add empty space filler to push subsequent items to the far right.
+    let s .= '%='
+
+    " You could add global info here, e.g., s .= ' [%f]'.
+
+    return s                                " Return the constructed string for Vim to draw.
+endfunction
+set tabline=%!MyCustomTabline()
+
+" ==============================================================================
+" Custom Command to Edit Files from Current Directory with Wildmenu
+function! GetFilesFromCurrentDir(ArgLead, CmdLine, CursorPos)
+    let current_buffer_dir = expand('%:h')
+    let pattern = current_buffer_dir . '/*'
+    return glob(pattern, 0, 1)
+endfunction
+function! EditFile(filename)
+    execute 'edit ' . fnameescape(a:filename)
+endfunction
+" 'register' EditCwd command 
+command! -nargs=1 -complete=customlist,GetFilesFromCurrentDir EditCwd call EditFile(<f-args>)
+
+
+

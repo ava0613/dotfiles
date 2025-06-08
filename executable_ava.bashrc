@@ -5,12 +5,13 @@
 export PATH="$HOME/.cargo/bin:$PATH"
 
 
-eval "$(zoxide init --cmd j bash)" # j and ji as cd
-alias zz=zoxide
 
 # if zoxide is installed, let zoxide handle the cd-s 
 if command -v zoxide &>/dev/null; then ZOXIDE_IS_INSTALLED=1; 
-    alias 'cd_cmd=j'; else echo "WARNING: zoxide not found"; alias 'cd_cmd=cd'; fi
+    eval "$(zoxide init --cmd j bash)" # j and ji as cd
+    alias zz=zoxide
+    alias 'cd_cmd=j'; 
+  else echo "WARNING: zoxide not found"; alias 'cd_cmd=cd'; fi
 if command -v fzf &>/dev/null; then FZF_IS_INSTALLED=1; 
   else echo "WARNING: fzf not found";  fi
 if command -v git &>/dev/null; then GIT_IS_INSTALLED=1; 
@@ -625,6 +626,8 @@ git stash pop
 #   ddx --- fzf on the recursive dirs/subdirs of x, then cd into the selection
 #   ffx --- fzf on the recursive files of x, then cd into the selected file's dir
 "
+  elif [[ "$1" == "notes" ]]; then #ava_cmd notes
+    cd_into $(fzf_dir_from_path $HOME/.config/ava/notes)
   else
     echo 'Get targeted help with: ava '$(build_cmd_help "ava_cmd")
     echo
