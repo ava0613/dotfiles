@@ -66,6 +66,7 @@ nnoremap <Leader><Tab> :buffers<CR> | "list buffers
 " vim config stuff
 nnoremap <Leader>ve :e $MYVIMRC<CR>       | "load my vimrc
 nnoremap <Leader>vs :source $MYVIMRC<CR>  | "source my vimrc
+nnoremap <Leader>vn :e $HOME/.config/ava/notes/vim.md<CR>  | "load my vim notes 
 colorscheme darkburn
 nnoremap <Leader>vvv :colorscheme 
 nnoremap <Leader>vva :colorscheme quiet<CR>
