@@ -5,12 +5,13 @@
 export PATH="$HOME/.cargo/bin:$PATH"
 
 
-eval "$(zoxide init --cmd j bash)" # j and ji as cd
-alias zz=zoxide
 
 # if zoxide is installed, let zoxide handle the cd-s 
 if command -v zoxide &>/dev/null; then ZOXIDE_IS_INSTALLED=1; 
-    alias 'cd_cmd=j'; else echo "WARNING: zoxide not found"; alias 'cd_cmd=cd'; fi
+    eval "$(zoxide init --cmd j bash)" # j and ji as cd
+    alias zz=zoxide
+    alias 'cd_cmd=j'; 
+  else echo "WARNING: zoxide not found"; alias 'cd_cmd=cd'; fi
 if command -v fzf &>/dev/null; then FZF_IS_INSTALLED=1; 
   else echo "WARNING: fzf not found";  fi
 if command -v git &>/dev/null; then GIT_IS_INSTALLED=1; 
@@ -139,6 +140,27 @@ cd_pproject()
       cd_into $(fzf_dir_from_path ~/work/$project)
    fi
 }
+
+
+# scp some of the dot files to a remote machine
+#public_cmd dot_scp <remote_host> -- quick move some dotconfig files to a remote machine
+dot_scp() { 
+  local remote_host=$1
+  #scp $HOME/ava.bashrc $1:~/ava.bashrc
+  #scp $HOME/.vimrc $1:~/.vimrc
+  #scp $HOME/.config/mc/ini $1:~/.config/mc/ini
+  #sftp -q -P "$REMOTE_PORT" "$REMOTE_ALIAS" <<EOF_SFTP_COMMANDS
+  # use sftp iinstead of scp so that password would be asked only once
+  sftp -q "$1" <<EOF_SFTP_COMMANDS
+  cd
+  lcd
+  put ava.bashrc ava.bashrc
+  put .vimrc .vimrc
+  put .config/mc/ini .config/mc/ini
+  bye
+EOF_SFTP_COMMANDS
+}
+
 
 #alias fvi="fzf --bind 'enter:execute(nvim.appimage {})'"
 alias fvi="fzf --bind 'enter:execute(vi {})'"
@@ -313,7 +335,8 @@ build_cmd_help() {
     echo "$output"
 }
 
-ku() {
+#public_cmd ku -- customized kube shortcuts, type ku for more help
+ku() { 
   # common command syntax
   if [[ -n "$3" && "$3" != -* ]]; then
     echo "with res"
@@ -603,8 +626,14 @@ git stash pop
 #   ddx --- fzf on the recursive dirs/subdirs of x, then cd into the selection
 #   ffx --- fzf on the recursive files of x, then cd into the selected file's dir
 "
+  elif [[ "$1" == "notes" ]]; then #ava_cmd notes
+    cd_into $(fzf_dir_from_path $HOME/.config/ava/notes)
   else
-    echo 'Get help with: ava '$(build_cmd_help "ava_cmd")
+    echo 'Get targeted help with: ava '$(build_cmd_help "ava_cmd")
+    echo
+    echo 'Also, these are the public commands from ava.bashrc'
+    grep -oP "#public_cmd \K(.*)" $HOME/ava.bashrc | grep -v 'grep -oP "public_cmd"'
+    echo
   fi
 }
 alias ava=ava_help
