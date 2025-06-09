@@ -18,4 +18,10 @@ q - end resitering macro
 C-v, select rows, S-i, do the edit, esc
 note: during edit only the first row is changed, at esc will be applied
 
+##misc
 
+ quick ref 
+ :%s/old/new/g  -- replace all 
+ gv -- reselect last visual select
+ == indent current line
+ = indent, =ap indent around paragraph

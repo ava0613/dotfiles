@@ -55,6 +55,7 @@ export FZF_DEFAULT_OPTS="\
 --preview-window=hidden \
 --preview='_fzf_preview_command {}' \
 --bind 'ctrl-e:execute(vi {})' \
+#--bind 'ctrl-m:execute(mc {})' \
 --bind ctrl-v:toggle-preview,\
 ctrl-i:preview-up,ctrl-k:preview-down,\
 ctrl-p:preview-page-up,\;:preview-page-down,\
@@ -63,6 +64,7 @@ ctrl-u:preview-top,ctrl-o:preview-bottom,\
 alt-up:half-page-up,alt-up:half-page-down \
 "
 #--wrap --wrap-sign '>> ' \
+#--bind 'ctrl-m:execute(mc \"$(dirname {})\")' \
 
 alias jjava='$cd_cmd '$HOME'/work/avadev'
 
@@ -120,10 +122,11 @@ cd_into() # cd into dir, but but guard against empty "cd" (which would take into
 #}
 #alias fcd=fzf_cd
 
-#fzf_mc()
+#fzf_mc)
 #{
-#   mc $(fzf_dir_from_path $1)
-#
+#   #mc $(fzf_dir_from_path $1)
+#   mc $(dirname $1)
+#}
 ##alias mcd=fzf_mc
 
 cd_project() # select a project with fzf then cd into it
@@ -245,13 +248,13 @@ alias rga='rgg_rg ~/work/atom' # rgg for atom dir FIXME from ATOM_ROOT
 
 
 ### lazygit
-alias llg='lazygit'                                                              
+alias llg='lazygit'
 # start lazygit with a filter to the current dir or to a file/dir in the current dir  
-lazygit_filtered()                                                                
-{                                                                                
-   lazygit -f $(pwd)/"$1"                                                        
-}                                                                                
-alias llh='lazygit_filtered'                                 
+lazygit_filtered()
+{
+   lazygit -f $(pwd)/"$1"
+}
+alias llh='lazygit_filtered'
 
 ### prompt
 PROMPT_COMMAND='PS1_CMD=$(basename $(git rev-parse --show-toplevel 2>/dev/null) 2>/dev/null)@$(git branch --show-current 2>/dev/null)$([[ $(git status --porcelain 2>/dev/null) ]] && echo "*")'; 

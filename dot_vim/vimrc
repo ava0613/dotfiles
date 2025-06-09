@@ -3,7 +3,6 @@ set encoding=utf-8
 syntax on                  |  " syntax highlighting
 filetype plugin indent on   | " allow auto-indenting depending on file type
 set hidden " allow switching buffers without having to save
-set paste
 
 "set ruler " bottom line status
 
@@ -44,6 +43,9 @@ nnoremap <Leader>x :x<CR>  | "write and quit
 nnoremap <Leader>c :bd<CR> | "close current buffer, but leave others
 
 nnoremap <Leader>y "+y | "yank to system clipboard, when it works
+
+set paste
+nnoremap <Leader>pp :set paste!<CR>         | " toggle paste
 
 "line numbers
 set number                  | " add line numbers
@@ -97,19 +99,25 @@ nnoremap <Leader>ee :Vexplore<CR>          | " file explorer
 nnoremap <Leader>fd :Lexplore<CR> | "open netrw in the dir where vim started
 nnoremap <leader>fe :Lexplore %:p:h<CR> | "open netrw in dir of current file
 
-" quick ref 
-" :%s/old/new/g  -- replace all 
-" gv -- reselect last visual select
-" == indent current line
-" = indent, =ap indent around paragraph
+nnoremap <leader>tt g_lD<CR> | "remove trailing spaces from the line
+
 
 
 " ==============================================================================
 " statusline settings
 set laststatus=2
 set statusline=
-"set statusline+=%#PmenuSel#
+set statusline+=%#StatusLine#
+set statusline+=%#CursorColumn#
 "set statusline+=%#LineNr#
+set statusline+=\%l:%c
+"set statusline+=%#PmenuSel#
+"set statusline+=\ %#WarningMsg#%{&paste?'PASTE':'NOPASTE'}%#StatusLine#
+set statusline+=\ %{&paste?'PASTE':'NOPASTE'}
+set statusline+=%*
+"set statusline+o=%#PmenuSel#
+"set statusline+=%#LineNr#
+set statusline+=%=
 set statusline+=\ %f
 set statusline+=%m%R
 set statusline+=%=
@@ -118,7 +126,6 @@ set statusline+=%#CursorColumn#
 set statusline+=%*
 set statusline+=%=
 set statusline+=%#CursorColumn#
-set statusline+=\ l%l:c%c
 set statusline+=\ [%p%%%L␤]
 set statusline+=\ Ξ%B
 set statusline+=\ %y
@@ -203,4 +210,10 @@ endfunction
 command! -nargs=1 -complete=customlist,GetFilesFromCurrentDir EditCwd call EditFile(<f-args>)
 
 
-
+" ==============================================================================
+" Enable persistent undo
+set undofile
+if !isdirectory(expand('~/.vim/undodir'))
+    call mkdir(expand('~/.vim/undodir'), 'p', 0700)
+endif
+set undodir=~/.vim/undodir
