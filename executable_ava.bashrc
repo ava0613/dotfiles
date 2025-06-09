@@ -55,7 +55,6 @@ export FZF_DEFAULT_OPTS="\
 --preview-window=hidden \
 --preview='_fzf_preview_command {}' \
 --bind 'ctrl-e:execute(vi {})' \
-#--bind 'ctrl-m:execute(mc {})' \
 --bind ctrl-v:toggle-preview,\
 ctrl-i:preview-up,ctrl-k:preview-down,\
 ctrl-p:preview-page-up,\;:preview-page-down,\
@@ -63,6 +62,7 @@ ctrl-j:preview-half-page-up,ctrl-l:preview-half-page-down,\
 ctrl-u:preview-top,ctrl-o:preview-bottom,\
 alt-up:half-page-up,alt-up:half-page-down \
 "
+#--bind 'ctrl-m:execute(mc {})' \
 #--wrap --wrap-sign '>> ' \
 #--bind 'ctrl-m:execute(mc \"$(dirname {})\")' \
 
@@ -246,6 +246,25 @@ rgg_rg()  # ripgrep simplified globbing without the -g param
 alias rgg='rgg_rg .'  # rgg for current dir
 alias rga='rgg_rg ~/work/atom' # rgg for atom dir FIXME from ATOM_ROOT
 
+# Replace 'your_pattern' with what you want to search for.
+# You can put this in a shell alias or function for easier use.
+rg_fzf() {
+  rg --vimgrep $@ | fzf \
+    --ansi \
+    --preview-window=right:50% \
+    --preview 'IFS=: read -r file line col <<< {} ; \
+           bat --color=always --style=numbers --highlight-line="$line" --line-range "$((line>25?line-25:0)):$((line+25))" "$file" '  \
+    --bind 'enter:execute(IFS=: read -r file line col <<< {} ; vim +"$line" "$file")' \
+    --bind "ctrl-y:execute-silent(echo {1} | xclip -selection clipboard)+abort" # Copy selected line to clipboard
+
+           #less -R -j"$(( $(tput lines) / 2 ))" +"$line" ' \
+    #--bind "enter:execute(vim {1})" \
+           #bat --color=always --style=numbers --highlight-line="$line" "$file" 2>/dev/null | \
+           #less -R -j"$line" +d"$line" ' \
+               #bat --color=always --style=numbers --highlight-line="$line" --line-range "$((line-15)):$((line+15))" "$file" || \
+               #(head -n "$((line+15))" "$file" | tail -n 31 | sed "1s/^/--- Preview of $file:$line ---\n/")' \
+}
+alias rgf='rg_fzf'
 
 ### lazygit
 alias llg='lazygit'
