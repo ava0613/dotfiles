@@ -25,3 +25,10 @@ note: during edit only the first row is changed, at esc will be applied
  gv -- reselect last visual select
  == indent current line
  = indent, =ap indent around paragraph
+ zz - center
+
+ jumplist, insertlist
+ quickfix, locallist
+
+" C-e, C-y  -- scroll without moving cursor
+" C-o, C-i -- jumplist 

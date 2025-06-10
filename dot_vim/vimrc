@@ -16,12 +16,11 @@ endif
 
 
 " indent stuff
-set tabstop=4               | " number of columns occupied by a tab 
-set softtabstop=4           | " see multiple spaces as tabstops so <BS> does the right thing
-set expandtab               | " converts tabs to white space
-set shiftwidth=4            | " width for autoindents
-set autoindent             | " indent a new line the same amount as the line just typed
-set shiftwidth=4 " for autoindent
+set tabstop=4                | " number of columns occupied by a tab 
+set softtabstop=4            | " see multiple spaces as tabstops so <BS> does the right thing
+set expandtab                | " converts tabs to white space
+set autoindent               | " indent a new line the same amount as the line just typed
+set shiftwidth=4             | " width for autoindents
 
 "set mouse=v                 | " middle-click paste with 
 "set mouse=a                 " enable mouse click
@@ -48,7 +47,7 @@ set paste
 nnoremap <Leader>pp :set paste!<CR>         | " toggle paste
 
 "line numbers
-set number                  | " add line numbers
+"set number                  | " add line numbers
 nnoremap <Leader>nn :set number!<CR>         | " toggle line numbers
 nnoremap <Leader>nr :set relativenumber!<CR> | "toggle relative line numbers
 
@@ -59,11 +58,11 @@ set incsearch
 set hlsearch
 
 "buffers
-nnoremap <Leader><Down> :b#<CR> | "buffer alt-tab
+nnoremap <Leader><Down> :b#<CR>         | "buffer alt-tab
 nnoremap <Leader><Right> :bnext<CR>
 nnoremap <Leader><Left> :bprevious<CR>
-nnoremap <Leader><Up> :ls<CR> | "list buffers
-nnoremap <Leader><Tab> :buffers<CR> | "list buffers
+nnoremap <Leader><Up> :ls<CR>           | "list buffers
+nnoremap <Leader><Tab> :buffers<CR>     | "list buffers
 
 " vim config stuff
 nnoremap <Leader>ve :e $MYVIMRC<CR>       | "load my vimrc
@@ -82,26 +81,55 @@ nnoremap <Leader>vvx :colorscheme 256-grayvim<CR>
 nnoremap <Leader>vvc :colorscheme wombat256<CR>
 
 " visuals
-set showmatch               | " show matching paranthesis/bracket
-nnoremap <Leader>hs :set hlsearch!<CR> | "toggle highlight when searching
-"set cursorcolumn           | " highlight current cursorcolumn
-"set cursorline             | " highlight current cursorline
-nnoremap <Leader>hl :set cursorline!<CR> | " toggle
+set showmatch                                           | " show matching paranthesis/bracket
+nnoremap <Leader>hs :set hlsearch!<CR>                  | " toggle highlight when searching
+nnoremap <Leader>hl :set cursorline!<CR>                | " toggle
 nnoremap <Leader>hc :set cursorcolumn!<CR>
-nnoremap <Leader>hh :set cursorline! cursorcolumn!<CR> | " toggle both at the same time
+nnoremap <Leader>hh :set cursorline! cursorcolumn!<CR>  | " toggle both at the same time
 nnoremap <silent><leader>hi :execute "set colorcolumn=" . (&colorcolumn == "" ? "80" : "")<CR> | " toggle colorcolumn
 set list lcs=trail:·,tab:»·  " show nasty chars, like illegal tabs and trailing spaces
 "" ¬ →  ⤦  ↩  
 "set list lcs=tab:»·,eol:¬
 
 nnoremap <Leader>ff :EditCwd <Tab>          | " 
-nnoremap <Leader>ee :Vexplore<CR>          | " file explorer    
-nnoremap <Leader>fd :Lexplore<CR> | "open netrw in the dir where vim started
-nnoremap <leader>fe :Lexplore %:p:h<CR> | "open netrw in dir of current file
+nnoremap <Leader>ee :Vexplore<CR>           | " file explorer    
+nnoremap <Leader>fd :Lexplore<CR>           | "open netrw in the dir where vim started
+nnoremap <leader>fe :Lexplore %:p:h<CR>     | "open netrw in dir of current file
 
 nnoremap <leader>tt g_lD<CR> | "remove trailing spaces from the line
 
+" C-e, C-y  -- scroll without moving cursor
+" C-o, C-i -- 
 
+" move around visually selected lines
+vnoremap J :m '>+1<CR>gv=gv
+vnoremap K :m '<-2<CR>gv=gv
+
+"   vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")↲
+"   vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv")↲
+"   ↲
+"   -- vim.keymap.set("n", "J", "mzJ`z") -- keep cursor in place when joining lines↲
+"   -- keep cursorline centered while scrollig↲
+"   vim.keymap.set("n", "<C-d>", "<C-d>zz")↲
+"   vim.keymap.set("n", "<C-u>", "<C-u>zz")↲
+"   -- keep search terms in the middle while sarching↲
+"   vim.keymap.set("n", "n", "nzzzv")↲
+"   vim.keymap.set("n", "N", "Nzzzv")↲
+
+
+" ==============================================================================
+" Use ripgrep as the grep program
+" --vimgrep: Output matches in Vim's quickfix format (file:line:col:match)
+" --no-heading: Don't print headings (cleaner for quickfix)
+" --line-number: Always print line numbers (redundant with --vimgrep but harmless)
+" --column: Always print column numbers (redundant with --vimgrep but harmless)
+" --smart-case: Search case-insensitively unless pattern contains uppercase characters
+" --hidden: Include hidden files and directories in search
+" --glob '!.git/': Exclude the .git directory (and other common ignores)
+" --follow: Follow symlinks
+set grepprg=rg\ --vimgrep\ --no-heading\ --line-number\ --column\ --smart-case\ --hidden\ --glob\ '!.git/'\ --follow
+" Format for ripgrep --vimgrep output: file:line:col:message
+set grepformat=%f:%l:%c:%m
 
 " ==============================================================================
 " statusline settings
@@ -113,7 +141,7 @@ set statusline+=%#CursorColumn#
 set statusline+=\%l:%c
 "set statusline+=%#PmenuSel#
 "set statusline+=\ %#WarningMsg#%{&paste?'PASTE':'NOPASTE'}%#StatusLine#
-set statusline+=\ %{&paste?'PASTE':'NOPASTE'}
+set statusline+=\ %{&paste?'PASTE':''}
 set statusline+=%*
 "set statusline+o=%#PmenuSel#
 "set statusline+=%#LineNr#
@@ -132,6 +160,50 @@ set statusline+=\ %y
 set statusline+=\ %{&fileencoding?&fileencoding:&encoding}
 set statusline+=\[%{&fileformat}\]
 
+nnoremap ll :lnext<cr>
+nnoremap lo :lprev<cr>
+nnoremap lp :llast<cr>
+nnoremap li :lfirst<cr>
+nnoremap lk :lolder<cr>
+nnoremap l; :lnewer<cr>
+nnoremap ly :call ToggleLoclist('vertical')<cr>
+nnoremap lh :call ToggleLoclist('')<cr>
+nnoremap kk :cnext<cr>
+nnoremap ki :cprev<cr>
+nnoremap ko :clast<cr>
+nnoremap ku :cfirst<cr>
+nnoremap kj :colder<cr>
+nnoremap kl :cnewer<cr>
+nnoremap ky :call ToggleQuickfix('vertical')<cr>
+nnoremap kh :call ToggleQuickfix('')<cr>
+autocmd QuickFixCmdPost rep* copen
+" Function to toggle  quickfix window
+function! ToggleLoclist( direction) abort
+    if empty(filter(getwininfo(), 'v:val.loclist'))
+        if a:direction ==# 'vertical'
+           vertical copen
+           vertical resize 80
+        else
+           lopen
+        endif
+    else
+        lclose
+    endif
+endfunction
+function! ToggleQuickfix( direction) abort
+    "if !empty(ndbuf(bufnr('[Quickfix List]')))
+    "if empty(filter(getwininfo(), 'v:val.quickfix'))
+    if empty(filter(getwininfo(), 'v:val.quickfix'))
+        if a:direction ==# 'vertical'
+           vertical copen
+           vertical resize 80
+        else
+           copen
+        endif
+    else
+        cclose
+    endif
+endfunction
 
 " ==============================================================================
 " Show Open Buffers in the Tabline
@@ -140,31 +212,36 @@ highlight MyCurrentTabPageBuffer ctermfg=white ctermbg=darkblue
 highlight MyOtherTabPageBuffer ctermfg=gray ctermbg=black 
 let g:tabline_highlight_group_1 = 'MyCurrentTabPageBuffer'
 let g:tabline_highlight_group_2 = 'MyOtherTabPageBuffer'
-function! MyCustomTabline()
-    let s = ''                             " Initialize an empty string to build the tabline content.
-    let bufnr_list = tabpagebuflist(v:lnum) " Get a list of buffer numbers in the *current* tabpage.
-    let current_buf = bufnr('%')           " Get the number of the buffer currently active in the *current window*.
+" --- MyCustomTabline Function (Corrected) ---
+function! MyCustomTabline() abort
+    let s = ''
+    " CORRECTED LINE: Use tabpagenr() to get the current tabpage number
+    let bufnr_list = tabpagebuflist(tabpagenr())
+    let current_buf = bufnr('%')
 
     " Loop through all *listed* buffers (i.e., not help, quickfix, etc.).
     for i in getbufinfo({'buflisted':1})
-        let buf_id = i.bufnr                 " Get the buffer number.
-        let buf_name = fnamemodify(i.name, ':t') " Get just the filename (tail) from the full path.
+        let buf_id = i.bufnr
+        let buf_name = fnamemodify(i.name, ':t')
         if buf_name == ''
-            let buf_name = '[No Name]'       " Handle unnamed buffers.
+            let buf_name = '[No Name]'
         endif
 
         " Apply highlight based on whether the buffer is in the current tabpage or another.
-        if index(bufnr_list, buf_id) >= 0    " Check if the buffer is in the currently viewed tabpage.
-            let s .= '%1*'                   " Apply highlight for current tabpage buffer (MyCurrentTabPageBuffer).
+        " Ensure bufnr_list is actually a list before using index()
+        " (though tabpagebuflist(tabpagenr()) should now reliably return a list)
+        if type(bufnr_list) == v:t_list && index(bufnr_list, buf_id) >= 0
+            let s .= '%#MyCurrentTabPageBuffer#' " Apply highlight for current tabpage buffer
         else
-            let s .= '%2*'                   " Apply highlight for other tabpage buffer (MyOtherTabPageBuffer).
+            let s .= '%#MyOtherTabPageBuffer#'   " Apply highlight for other tabpage buffer
         endif
 
         " Apply highlight for the currently active buffer (the one with the cursor).
+        " This part overrides the previous highlight choice, giving precedence to active buffer status.
         if buf_id == current_buf
-            let s .= '%#TabLineSel#'         " Use Vim's built-in 'TabLineSel' for the active buffer.
+            let s .= '%#TabLineSel#'
         else
-            let s .= '%#TabLine#'            " Use Vim's built-in 'TabLine' for other buffers.
+            let s .= '%#TabLine#'
         endif
 
         " Make the buffer entry clickable to switch to it.
@@ -173,26 +250,24 @@ function! MyCustomTabline()
 
         " Construct the display name for the buffer.
         let buf_display_name = buf_name
-        if i.changed                        " Append '[+]' if the buffer has unsaved changes.
+        if i.changed
             let buf_display_name .= ' [+]'
         endif
         " Truncate long names to avoid clutter (adjust 30 as needed).
         if strlen(buf_display_name) > 30
             let buf_display_name = strcharpart(buf_display_name, 0, 27) . '...'
         endif
-        let s .= buf_display_name . ' '     " Add the display name and a space.
+        let s .= buf_display_name . ' '
 
         " Reset highlight groups for the next item or end of current item.
-        let s .= '%T'                       " Reset tab highlight (important for clickability).
-        let s .= '%*'                       " Reset custom highlight (back to default).
+        let s .= '%T' " Reset tab highlight (important for clickability).
+        let s .= '%*' " Reset custom highlight (back to default).
     endfor
 
     " Add empty space filler to push subsequent items to the far right.
     let s .= '%='
 
-    " You could add global info here, e.g., s .= ' [%f]'.
-
-    return s                                " Return the constructed string for Vim to draw.
+    return s
 endfunction
 set tabline=%!MyCustomTabline()
 
